@@ -4,9 +4,9 @@ interface Message {
 }
 
 export const AVAILABLE_MODELS = [
-  { id: "default", name: "Mythos 5 (Default - Most Powerful)" },
+  { id: "default", name: "Sonnet 5 (Default)" },
   { id: "claude-opus-5", name: "Opus 5 (Very Capable)" },
-  { id: "claude-sonnet-5", name: "Sonnet 5 (Balanced)" },
+  { id: "claude-sonnet-5", name: "Sonnet 5 (Explicit)" },
   { id: "claude-haiku-4-5", name: "Haiku 4.5 (Fast)" },
 ];
 
