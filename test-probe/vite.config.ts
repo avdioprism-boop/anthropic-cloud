@@ -31,8 +31,8 @@ export default defineConfig({
                   // Use claude CLI with system prompt and conversation context
                   const fullPrompt = `${systemPrompt}\n\n${conversationContext}`;
 
-                  // Extract model - default to Mythos 5
-                  const model = data.model || "claude-mythos-5";
+                  // Extract model - default to Opus 5
+                  const model = data.model || "claude-opus-5";
 
                   const args = ["-p", fullPrompt, "--model", model];
 

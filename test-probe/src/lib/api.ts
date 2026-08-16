@@ -4,13 +4,12 @@ interface Message {
 }
 
 export const AVAILABLE_MODELS = [
-  { id: "claude-mythos-5", name: "Mythos 5 (Most Powerful)" },
-  { id: "claude-opus-5", name: "Opus 5 (Very Capable)" },
+  { id: "claude-opus-5", name: "Opus 5 (Default - Most Capable)" },
   { id: "claude-sonnet-5", name: "Sonnet 5 (Balanced)" },
   { id: "claude-haiku-4-5", name: "Haiku 4.5 (Fast)" },
 ];
 
-export const DEFAULT_MODEL = "claude-mythos-5";
+export const DEFAULT_MODEL = "claude-opus-5";
 
 export async function callClaude(messages: Message[], model: string = DEFAULT_MODEL): Promise<string> {
   try {
