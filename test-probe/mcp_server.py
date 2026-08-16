@@ -3,12 +3,15 @@
 
 import json
 import sys
+import os
 from anthropic import Anthropic
 
-async def handle_call_claude(model: str, max_tokens: int, messages: list) -> dict:
+def handle_call_claude(model: str, max_tokens: int, messages: list) -> dict:
     """Call Claude API with session authentication."""
     try:
-        client = Anthropic(api_key="dummy")  # SDK will use session auth
+        # Use session authentication - Claude Code environment provides auth via proxy
+        # Pass empty key to use session auth from environment
+        client = Anthropic(api_key="dummy")
 
         response = client.messages.create(
             model=model,
@@ -21,8 +24,10 @@ async def handle_call_claude(model: str, max_tokens: int, messages: list) -> dic
             "model": response.model,
         }
     except Exception as e:
+        import traceback
         return {
-            "error": str(e)
+            "error": str(e),
+            "traceback": traceback.format_exc()
         }
 
 

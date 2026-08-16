@@ -1,9 +1,6 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { spawn } from "child_process";
-
-let mcpProcess: any = null;
 
 export default defineConfig({
   plugins: [
@@ -11,9 +8,6 @@ export default defineConfig({
     {
       name: "claude-api",
       configureServer(server) {
-        // Start MCP server process
-        mcpProcess = spawn("python3", [path.join(__dirname, "mcp_server.py")]);
-
         return () => {
           server.middlewares.use("/api/claude", async (req, res, next) => {
             if (req.method === "POST") {
@@ -24,45 +18,44 @@ export default defineConfig({
               req.on("end", async () => {
                 try {
                   const data = JSON.parse(body);
+                  const baseUrl = process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com";
 
-                  // Send request to MCP server via stdin
-                  const mcpRequest = JSON.stringify({
-                    id: Date.now(),
-                    method: "call_claude",
-                    params: {
-                      model: data.model || "claude-sonnet-5",
-                      max_tokens: data.max_tokens || 1024,
-                      messages: data.messages || [],
-                    },
-                  });
-
-                  mcpProcess.stdin.write(mcpRequest + "\n");
-
-                  // Wait for response
-                  const handleOutput = (data: Buffer) => {
-                    try {
-                      const response = JSON.parse(data.toString());
-                      if (response.result?.error) {
-                        res.statusCode = 400;
-                        res.end(JSON.stringify({ error: response.result.error }));
-                      } else if (response.result?.content) {
-                        res.setHeader("Content-Type", "application/json");
-                        res.statusCode = 200;
-                        res.end(
-                          JSON.stringify({
-                            content: [{ type: "text", text: response.result.content }],
-                            model: response.result.model,
-                          })
-                        );
-                      }
-                      mcpProcess.stdout.removeListener("data", handleOutput);
-                    } catch (e) {
-                      // Wait for next line
-                    }
+                  const payload = {
+                    model: data.model || "claude-opus-5",
+                    max_tokens: data.max_tokens || 1024,
+                    messages: data.messages || [],
                   };
 
-                  mcpProcess.stdout.once("data", handleOutput);
+                  // Make request through proxy - send empty x-api-key so proxy injects real one
+                  const response = await fetch(`${baseUrl}/v1/messages`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "anthropic-version": "2023-06-01",
+                      "x-api-key": "", // Empty key triggers proxy injection
+                    },
+                    body: JSON.stringify(payload),
+                  });
+
+                  const apiResponse = await response.json();
+
+                  if (!response.ok) {
+                    res.statusCode = response.status;
+                    res.end(JSON.stringify({ error: apiResponse.error }));
+                  } else if (apiResponse.content?.length > 0) {
+                    res.setHeader("Content-Type", "application/json");
+                    res.statusCode = 200;
+                    res.end(
+                      JSON.stringify({
+                        content: [{ type: "text", text: apiResponse.content[0].text }],
+                        model: apiResponse.model,
+                      })
+                    );
+                  } else {
+                    throw new Error(`Unexpected response: ${JSON.stringify(apiResponse)}`);
+                  }
                 } catch (error) {
+                  console.error("[Claude API Error]", error);
                   res.statusCode = 500;
                   res.end(
                     JSON.stringify({
