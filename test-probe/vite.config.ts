@@ -2,6 +2,7 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import https from "https";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 export default defineConfig({
   plugins: [
