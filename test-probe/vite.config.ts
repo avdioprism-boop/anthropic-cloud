@@ -31,15 +31,10 @@ export default defineConfig({
                   // Use claude CLI with system prompt and conversation context
                   const fullPrompt = `${systemPrompt}\n\n${conversationContext}`;
 
-                  // Extract model - default to no flag (uses Mythos 5 as configured)
-                  const model = data.model || "default";
+                  // Extract model - default to Mythos 5
+                  const model = data.model || "claude-mythos-5";
 
-                  const args = ["-p", fullPrompt];
-
-                  // Only add --model flag if not using default (default is Mythos 5)
-                  if (model !== "default") {
-                    args.push("--model", model);
-                  }
+                  const args = ["-p", fullPrompt, "--model", model];
 
                   const result = spawnSync("claude", args, {
                     encoding: "utf-8",
