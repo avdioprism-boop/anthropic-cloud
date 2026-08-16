@@ -1,206 +1,179 @@
-# Claude Mythos 5 Chat Interface
+# Claude Chat
 
-A powerful web-based chat interface using Claude Mythos 5 running in the Claude Code remote environment via Tailscale.
-
-## ✨ Features
-
-- **Model Selection**: Switch between Mythos 5, Opus 5, Sonnet 5, and Haiku 4.5
-- **Real-time Chat**: Multi-turn conversations with full context
-- **Dark Mode**: Beautiful dark theme by default
-- **Tailscale Access**: Accessible from any device on your Tailscale network
-- **No API Keys Needed**: Uses Claude Code's built-in session authentication
-- **System Prompt**: Configured to be a helpful assistant (not just intro-ing itself)
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-cd /home/user/anthropic-cloud/test-probe
-npm install
-```
-
-### Launch
-
-```bash
-npm run dev
-```
-
-The server will start and be accessible at:
-- **Local**: http://localhost:5173/
-- **Tailscale**: http://100.81.149.31:5173/
-
-## 📍 Access Points
-
-### Windows Desktop Shortcut
-File: `Claude Chat.url` (in this folder)  
-Just double-click to launch in browser!
-
-### Command Line
-```bash
-# From this directory
-npm run dev
-
-# From anywhere
-cd /home/user/anthropic-cloud/test-probe && npm run dev
-```
-
-### Tailscale (from any device on network)
-Open browser and go to: `http://100.81.149.31:5173/`
-
-## 🏗️ How It Works
-
-1. You type in the web interface
-2. Frontend sends message to `/api/claude` endpoint
-3. Vite middleware calls `claude` CLI with your message
-4. Claude CLI uses session auth from Claude Code environment
-5. Response comes back as JSON
-6. Chat displays the response
-
-**No manual API keys needed** — it all works through Claude Code's session authentication!
-
-## 🤖 Models
-
-| Model | Use Case | Speed |
-|-------|----------|-------|
-| **Mythos 5** (Default) | Complex reasoning, creative work | Medium |
-| **Opus 5** | Professional/technical tasks | Medium |
-| **Sonnet 5** | Balanced speed & quality | Fast |
-| **Haiku 4.5** | Quick responses | Very Fast |
-
-Switch models anytime using the dropdown in the top-right of the chat!
-
-## 💾 Keep It Running Long-Term
-
-### Option 1: Simple (Manual Launch)
-```bash
-cd /home/user/anthropic-cloud/test-probe && npm run dev
-```
-
-### Option 2: Systemd Service (Always Running)
-Create `/etc/systemd/system/claude-chat.service`:
-```ini
-[Unit]
-Description=Claude Mythos 5 Chat
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/home/user/anthropic-cloud/test-probe
-ExecStart=/usr/bin/npm run dev
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Then:
-```bash
-sudo systemctl enable claude-chat
-sudo systemctl start claude-chat
-# Check status: sudo systemctl status claude-chat
-```
-
-### Option 3: Background Session (tmux)
-```bash
-tmux new-session -d -s claude -c /home/user/anthropic-cloud/test-probe "npm run dev"
-
-# Reconnect later: tmux attach -t claude
-# List sessions: tmux list-sessions
-```
-
-## 🛠️ Customization
-
-### Change Default Model
-Edit `src/lib/api.ts`:
-```typescript
-export const DEFAULT_MODEL = "claude-opus-5";
-```
-
-### Modify System Prompt
-Edit `vite.config.ts`, find this line and change it:
-```typescript
-const systemPrompt = `You are a helpful AI assistant...`;
-```
-
-### Change Styling
-Edit `tailwind.config.js` and `src/index.css`
-
-## 📁 Project Structure
-
-```
-test-probe/
-├── src/
-│   ├── App.tsx                 # Main component
-│   ├── components/
-│   │   └── ChatInterface.tsx   # Chat UI
-│   ├── lib/
-│   │   └── api.ts              # API client
-│   ├── main.tsx
-│   └── index.css
-├── vite.config.ts              # Vite + API middleware
-├── package.json
-├── tailwind.config.js
-├── Claude Chat.url             # Windows shortcut
-└── README.md
-```
-
-## 🔧 Troubleshooting
-
-**Port 5173 already in use?**
-- Vite auto-increments to 5174, 5175, etc.
-- Or kill: `lsof -ti:5173 | xargs kill -9`
-
-**Can't connect via Tailscale?**
-- Check: `tailscale status`
-- Get IP: `tailscale ip`
-- Use that IP: `http://[your-ip]:5173/`
-
-**Claude not responding?**
-- Check logs: `tail -f /tmp/vite-dev.log`
-- Test CLI: `claude -p "test"`
-
-**Model not recognized?**
-- Verify in Claude Code environment: `claude --version`
-- Mythos 5 is default—others are fallback options
-
-## 📦 Build for Production
-
-```bash
-npm run build
-# Outputs to: dist/
-
-# Preview build
-npm run preview
-```
-
-## 📚 Tech Stack
-
-- **Frontend**: React 18 + TypeScript + Tailwind CSS
-- **Backend**: Vite + Node.js middleware
-- **Authentication**: Claude Code session auth
-- **Components**: shadcn/ui
-- **Build Tool**: Vite
-
-## 🔗 Repository
-
-- **Repo**: https://github.com/avdioprism-boop/anthropic-cloud
-- **Branch**: `claude/new-session-z17i0b`
-
-To update:
-```bash
-git pull origin claude/new-session-z17i0b
-npm install
-```
-
-## ✅ Ready to Use!
-
-Your Mythos 5 chat interface is fully set up and ready for work, testing, and exploration. Just run `npm run dev` and start chatting!
+A web chat interface for Claude with a model picker, visible reasoning, and a
+config file you can edit without touching code.
 
 ---
 
-**Status**: ✅ Fully Functional  
-**Model**: Mythos 5 (Default)  
-**Access**: Tailscale network  
-**Updated**: August 16, 2026
+## Running it on your own machine
+
+This app has **no API key and no server dependency of its own**. It shells out
+to the `claude` CLI, which uses whatever account you're already logged into.
+That means it runs anywhere Claude Code runs — your laptop included.
+
+**1. Install Claude Code and log in**
+
+Get it from <https://claude.com/claude-code>, then run `claude` once and sign
+in. Verify it works:
+
+```bash
+claude -p "say hi"
+```
+
+If that prints a reply, you're set. Everything else below depends only on this.
+
+**2. Get the code and its dependencies**
+
+```bash
+git clone https://github.com/avdioprism-boop/anthropic-cloud.git
+cd anthropic-cloud/test-probe
+npm install       # or: pnpm install
+```
+
+**3. Start it**
+
+```bash
+./launch.sh
+```
+
+Then open <http://localhost:5173/>.
+
+On Windows, use WSL for `launch.sh`, or run `npm run dev` directly from
+PowerShell — the launcher is a convenience, not a requirement.
+
+### Why no API key?
+
+Requests go: **browser → local Vite server → `claude` CLI → Anthropic**. The
+Vite dev server exposes a small `/api/claude` endpoint that spawns the CLI. The
+CLI already holds your credentials, so the app never sees or stores a key.
+
+The tradeoff: the CLI must be installed and logged in on whatever machine runs
+the server. Usage bills to that account.
+
+---
+
+## Configuration
+
+Edit **`claude-chat.config.json`**. The server re-reads it on every request, so
+changes take effect on your next message — no restart needed.
+
+```json
+{
+  "defaultModel": "claude-opus-5",
+  "models": [
+    { "id": "claude-opus-5",   "name": "Opus 5 (Default - Most Capable)" },
+    { "id": "claude-sonnet-5", "name": "Sonnet 5 (Balanced)" },
+    { "id": "claude-haiku-4-5", "name": "Haiku 4.5 (Fast)" }
+  ],
+  "systemPrompt": "You are a helpful AI assistant...",
+  "reasoning": {
+    "enabledByDefault": true,
+    "instruction": "Respond in exactly this format..."
+  },
+  "maxTokens": 2048
+}
+```
+
+| Field | What it does |
+|---|---|
+| `defaultModel` | Model selected when the page loads |
+| `models` | Populates the dropdown. Add or remove entries freely |
+| `systemPrompt` | The persona/instructions sent with every message |
+| `reasoning.enabledByDefault` | Initial state of the Reasoning checkbox |
+| `reasoning.instruction` | The format the model is asked to follow when reasoning is on |
+| `maxTokens` | Response length ceiling |
+
+A malformed file falls back to built-in defaults and logs the error rather than
+crashing the server.
+
+To add a model, add its ID to `models` — anything your account can reach via
+`claude --model <id>` will work. Verify first:
+
+```bash
+claude -p "hello" --model some-model-id
+```
+
+---
+
+## Reasoning
+
+Toggle **Reasoning** in the header. When on, each reply gets a collapsible
+*Show reasoning* panel with the model's step-by-step working.
+
+**An honest caveat about what this is.** Claude's internal thinking chain comes
+back from the API *encrypted* — a signature with no readable content. It cannot
+be displayed by this app or any other. What you see here is the model writing
+its reasoning out explicitly in the response, because the system prompt asks it
+to. That's genuine and usually reflects its actual approach, but it is
+self-reported, not the hidden chain.
+
+Turning reasoning off skips the format instruction entirely and makes replies
+slightly faster.
+
+---
+
+## Launcher
+
+```bash
+./launch.sh          # start (detached — survives closing the terminal)
+./launch.sh stop     # stop
+./launch.sh status   # what's running
+./launch.sh logs     # tail the log
+```
+
+Start brings Tailscale up first if it's installed, then starts the server with
+`setsid` so it doesn't die when the shell exits. Logs go to
+`.claude-chat.log`.
+
+---
+
+## Access over Tailscale
+
+If both machines are on the same tailnet, reach the app at your host's
+Tailscale IP:
+
+```
+http://<tailscale-ip>:5173/
+```
+
+`./launch.sh status` prints the current IP. The server binds `0.0.0.0`, so it
+listens on every interface.
+
+---
+
+## Troubleshooting
+
+**"the 'claude' CLI is not installed"** — Install Claude Code and run `claude`
+once to log in.
+
+**Page loads but messages error** — Check `./launch.sh logs`. Usually the CLI
+isn't authenticated; confirm with `claude -p "hi"`.
+
+**Can't reach it over Tailscale** — Run `./launch.sh status`. If Tailscale is
+down, `sudo tailscaled --state=/var/lib/tailscale/tailscaled.state &` then
+`tailscale up`.
+
+**Port 5173 in use** — Vite silently shifts to 5174 and the URL you had stops
+working. `./launch.sh stop` clears stale servers; the startup output always
+shows the real port.
+
+**A model errors** — Your account may not have access to it. Test with
+`claude -p "hi" --model <id>` and remove it from `models` if unavailable.
+
+---
+
+## Layout
+
+```
+test-probe/
+├── claude-chat.config.json      ← edit this
+├── launch.sh
+├── vite.config.ts               ← /api/claude + /api/config endpoints
+└── src/
+    ├── App.tsx
+    ├── lib/api.ts               ← client, config fetch
+    └── components/
+        └── ChatInterface.tsx    ← UI, reasoning panel
+```
+
+Stack: React 19, TypeScript, Vite 8, Tailwind, shadcn/ui.

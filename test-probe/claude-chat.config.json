@@ -1,0 +1,20 @@
+{
+  "_comment": "Edit this file to change models and prompts. Saving it auto-restarts the dev server.",
+
+  "defaultModel": "claude-opus-5",
+
+  "models": [
+    { "id": "claude-opus-5", "name": "Opus 5 (Default - Most Capable)" },
+    { "id": "claude-sonnet-5", "name": "Sonnet 5 (Balanced)" },
+    { "id": "claude-haiku-4-5", "name": "Haiku 4.5 (Fast)" }
+  ],
+
+  "systemPrompt": "You are a helpful AI assistant. Provide clear, thoughtful, and accurate responses. Be conversational and friendly.",
+
+  "reasoning": {
+    "enabledByDefault": true,
+    "instruction": "Respond in exactly this format, with no text outside the tags:\n<reasoning>\nWork through the problem step by step here. Be concise but show the actual steps, considerations, and any assumptions you are making.\n</reasoning>\n<answer>\nYour final response to the user here.\n</answer>"
+  },
+
+  "maxTokens": 2048
+}

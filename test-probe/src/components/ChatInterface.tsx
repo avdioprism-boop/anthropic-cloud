@@ -3,19 +3,64 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { callClaude, AVAILABLE_MODELS, DEFAULT_MODEL } from "@/lib/api";
+import {
+  callClaude,
+  fetchConfig,
+  FALLBACK_CONFIG,
+  type ChatConfig,
+} from "@/lib/api";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  reasoning?: string | null;
+}
+
+function ReasoningPanel({ reasoning }: { reasoning: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mb-2 border-b border-border/50 pb-2">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <span
+          className={`inline-block transition-transform ${
+            open ? "rotate-90" : ""
+          }`}
+        >
+          ▶
+        </span>
+        {open ? "Hide reasoning" : "Show reasoning"}
+      </button>
+      {open && (
+        <p className="mt-2 text-xs italic text-muted-foreground whitespace-pre-wrap">
+          {reasoning}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [model, setModel] = useState(DEFAULT_MODEL);
+  const [config, setConfig] = useState<ChatConfig>(FALLBACK_CONFIG);
+  const [model, setModel] = useState(FALLBACK_CONFIG.defaultModel);
+  const [reasoningOn, setReasoningOn] = useState(
+    FALLBACK_CONFIG.reasoningEnabledByDefault
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchConfig().then((loaded) => {
+      setConfig(loaded);
+      setModel(loaded.defaultModel);
+      setReasoningOn(loaded.reasoningEnabledByDefault);
+    });
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -33,8 +78,15 @@ export function ChatInterface() {
     setLoading(true);
 
     try {
-      const response = await callClaude(newMessages, model);
-      setMessages([...newMessages, { role: "assistant", content: response }]);
+      const reply = await callClaude(newMessages, model, reasoningOn);
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: reply.text,
+          reasoning: reply.reasoning,
+        },
+      ]);
     } catch (error) {
       const errorMsg =
         error instanceof Error ? error.message : "Unknown error occurred";
@@ -50,20 +102,32 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="border-b p-4 bg-background">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <h1 className="text-xl font-bold">Claude Chat</h1>
-          <select
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            disabled={loading}
-            className="px-3 py-2 bg-muted text-foreground border border-border rounded-md text-sm disabled:opacity-50"
-          >
-            {AVAILABLE_MODELS.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={reasoningOn}
+                onChange={(e) => setReasoningOn(e.target.checked)}
+                disabled={loading}
+                className="accent-primary"
+              />
+              Reasoning
+            </label>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              disabled={loading}
+              className="px-3 py-2 bg-muted text-foreground border border-border rounded-md text-sm disabled:opacity-50"
+            >
+              {config.models.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -74,7 +138,7 @@ export function ChatInterface() {
               <div className="flex items-center justify-center h-full text-muted-foreground">
                 <div className="text-center">
                   <h2 className="text-2xl font-bold mb-2">Chat with Claude</h2>
-                  <p>Start a conversation using {AVAILABLE_MODELS.find(m => m.id === model)?.name}</p>
+                  <p>Start a conversation using {config.models.find(m => m.id === model)?.name}</p>
                 </div>
               </div>
             )}
@@ -92,7 +156,8 @@ export function ChatInterface() {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm">{msg.content}</p>
+                  {msg.reasoning && <ReasoningPanel reasoning={msg.reasoning} />}
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 </Card>
               </div>
             ))}
