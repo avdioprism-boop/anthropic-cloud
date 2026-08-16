@@ -1,4 +1,4 @@
-const MODEL = "claude-opus-5";
+const MODEL = "claude-sonnet-5";
 
 interface Message {
   role: "user" | "assistant";
@@ -21,8 +21,9 @@ export async function callClaude(messages: Message[]): Promise<string> {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`API Error ${response.status}: ${error}`);
+      const errorText = await response.text();
+      console.error("API Response:", response.status, errorText);
+      throw new Error(`API Error ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();

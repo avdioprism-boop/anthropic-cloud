@@ -1,6 +1,7 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { execSync } from "child_process";
 
 export default defineConfig({
   plugins: [
@@ -17,22 +18,22 @@ export default defineConfig({
               });
               req.on("end", async () => {
                 try {
-                  const response = await fetch(
-                    "https://api.anthropic.com/v1/messages",
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        "anthropic-version": "2023-06-01",
-                      },
-                      body: body,
-                    }
-                  );
-                  const data = await response.json();
+                  const curlCmd = `curl -s -X POST https://api.anthropic.com/v1/messages \
+                    -H "Content-Type: application/json" \
+                    -H "anthropic-version: 2023-06-01" \
+                    -d '${body.replace(/'/g, "'\\''")}'`;
+
+                  const result = execSync(curlCmd, {
+                    encoding: "utf-8",
+                    stdio: ["pipe", "pipe", "pipe"],
+                  });
+
+                  const data = JSON.parse(result);
                   res.setHeader("Content-Type", "application/json");
-                  res.statusCode = response.status;
+                  res.statusCode = 200;
                   res.end(JSON.stringify(data));
                 } catch (error) {
+                  console.error("API Error:", error);
                   res.statusCode = 500;
                   res.end(
                     JSON.stringify({
