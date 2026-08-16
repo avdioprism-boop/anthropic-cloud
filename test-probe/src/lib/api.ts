@@ -1,11 +1,18 @@
-const MODEL = "claude-sonnet-5";
-
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-export async function callClaude(messages: Message[]): Promise<string> {
+export const AVAILABLE_MODELS = [
+  { id: "claude-mythos-5", name: "Mythos 5 (Most Powerful)" },
+  { id: "claude-opus-5", name: "Opus 5 (Very Capable)" },
+  { id: "claude-sonnet-5", name: "Sonnet 5 (Balanced)" },
+  { id: "claude-haiku-4-5", name: "Haiku 4.5 (Fast)" },
+];
+
+export const DEFAULT_MODEL = "claude-mythos-5";
+
+export async function callClaude(messages: Message[], model: string = DEFAULT_MODEL): Promise<string> {
   try {
     const response = await fetch("/api/claude", {
       method: "POST",
@@ -14,8 +21,8 @@ export async function callClaude(messages: Message[]): Promise<string> {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1024,
+        model: model,
+        max_tokens: 2048,
         messages: messages,
       }),
     });

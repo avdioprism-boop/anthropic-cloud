@@ -20,14 +20,26 @@ export default defineConfig({
                 try {
                   const data = JSON.parse(body);
 
-                  // Extract the user's message from the messages array
-                  const userMessage = data.messages
-                    ?.find((m: any) => m.role === "user")
-                    ?.content || "hello";
+                  // Build conversation context from message history
+                  const conversationContext = data.messages
+                    ?.map((m: any) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+                    .join("\n\n") || "User: hello";
 
-                  // Use claude CLI to call Claude directly
-                  // The CLI has access to session auth in the Claude Code environment
-                  const result = spawnSync("claude", ["-p", userMessage], {
+                  // System prompt to make Claude actually useful
+                  const systemPrompt = `You are a helpful AI assistant. Provide clear, thoughtful, and accurate responses. Be conversational and friendly.`;
+
+                  // Use claude CLI with system prompt and conversation context
+                  const fullPrompt = `${systemPrompt}\n\n${conversationContext}`;
+
+                  // Extract model or default to Mythos 5
+                  const model = data.model || "claude-mythos-5";
+
+                  const result = spawnSync("claude", [
+                    "-p",
+                    fullPrompt,
+                    "--model",
+                    model,
+                  ], {
                     encoding: "utf-8",
                     maxBuffer: 10 * 1024 * 1024,
                   });
@@ -48,7 +60,7 @@ export default defineConfig({
                   res.end(
                     JSON.stringify({
                       content: [{ type: "text", text: responseText }],
-                      model: data.model || "claude-opus-5",
+                      model: model,
                     })
                   );
                 } catch (error) {
