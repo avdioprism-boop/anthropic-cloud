@@ -2,7 +2,11 @@ import { ChatInterface } from './components/ChatInterface'
 import './App.css'
 
 function App() {
-  return <ChatInterface />
+  return (
+    <div className="dark">
+      <ChatInterface />
+    </div>
+  )
 }
 
 export default App

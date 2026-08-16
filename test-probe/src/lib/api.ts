@@ -1,4 +1,3 @@
-const API_BASE = "https://api.anthropic.com/v1";
 const MODEL = "claude-opus-5";
 
 interface Message {
@@ -7,25 +6,29 @@ interface Message {
 }
 
 export async function callClaude(messages: Message[]): Promise<string> {
-  const response = await fetch(`${API_BASE}/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": "", // Proxy will inject credentials
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      messages: messages,
-    }),
-  });
+  try {
+    const response = await fetch("/api/claude", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1024,
+        messages: messages,
+      }),
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`API Error: ${response.status} - ${error}`);
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API Error ${response.status}: ${error}`);
+    }
+
+    const data = await response.json();
+    return data.content[0].text;
+  } catch (error) {
+    console.error("Claude API Error:", error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.content[0].text;
 }
