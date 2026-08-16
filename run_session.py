@@ -15,12 +15,18 @@ import anthropic
 # Resolves ANTHROPIC_API_KEY, then ANTHROPIC_AUTH_TOKEN, then an `ant auth login` profile.
 client = anthropic.Anthropic()
 
-AGENT_ID = os.environ["AGENT_ID"]
-ENVIRONMENT_ID = os.environ["ENVIRONMENT_ID"]
-
 # Console workspace slug. "default" is correct only if your API key lives in the
 # org's Default workspace; otherwise a link built with it lands on "Session not found".
 WORKSPACE = os.environ.get("ANTHROPIC_WORKSPACE", "default")
+
+
+def _require(name: str) -> str:
+    """Read a required env var, or explain how to get it. Resolved at call time so
+    the module stays importable (and testable) without a configured environment."""
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(f"{name} is not set. Run ./setup.sh once, then export the IDs it prints.")
+    return value
 
 
 def lookup_ticket(ticket_id: str) -> str:
@@ -34,9 +40,9 @@ CUSTOM_TOOLS = {"lookup_ticket": lambda inp: lookup_ticket(inp["ticket_id"])}
 
 def start(prompt: str):
     session = client.beta.sessions.create(
-        agent=AGENT_ID,  # string shorthand = latest version; use
-        # {"type": "agent", "id": AGENT_ID, "version": N} to pin for reproducibility
-        environment_id=ENVIRONMENT_ID,
+        agent=_require("AGENT_ID"),  # string shorthand = latest version; use
+        # {"type": "agent", "id": ..., "version": N} to pin for reproducibility
+        environment_id=_require("ENVIRONMENT_ID"),
         title="Research run",
         # Hard spend ceiling, priced at public list rates. CREATE-ONLY: a budget can
         # be raised, lowered, or removed later, but never ADDED to a session that

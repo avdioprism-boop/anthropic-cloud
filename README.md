@@ -21,10 +21,22 @@ export AGENT_ID=... ENVIRONMENT_ID=...
 python run_session.py "Research X and write the findings to /mnt/session/outputs/"
 ```
 
-Prerequisites not present in this container: `pip install anthropic`, and the `ant`
-CLI (`brew install anthropics/tap/ant`, or a release binary). **The YAML, shell, and
-Python here are syntax-checked only — no call has been made against the API from
-this repo, so treat the first run as the real verification.**
+Prerequisites: `pip install anthropic` (verified against **0.122.0**) and the `ant`
+CLI (`brew install anthropics/tap/ant`, or a release binary — not required if you
+create the agent and environment through the SDK instead).
+
+**Verification status.** Every SDK binding used by `run_session.py` was checked by
+introspection against anthropic 0.122.0 and exists with the parameter names used
+here: `sessions.create(agent, environment_id, budget, resources, initial_events,
+title, vault_ids)`, `sessions.events.stream(session_id, event_deltas, betas)`
+returning a `Stream` that implements the context-manager protocol,
+`sessions.events.send(session_id, events, betas)`, `files.list(scope_id, betas)`,
+and `files.download(...).write_to_file(path)`. The five event-type string literals
+the runner switches on (`agent.message`, `agent.custom_tool_use`,
+`session.usage`, `session.status_idle`, `session.status_terminated`) all ship in
+the SDK. **No live API call has been made** — network behavior, the Glasswing model
+gate, and retention enforcement are still unverified, so treat the first real run as
+the final check.
 
 ## Before you run it — three gates specific to this model
 
