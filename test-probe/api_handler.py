@@ -5,7 +5,7 @@ import os
 import requests
 
 def handle_api_request(request_body):
-    """Handle Claude API request using direct HTTP with proxy auth."""
+    """Handle Claude API request via proxy with explicit tunnel."""
     try:
         data = json.loads(request_body)
 
@@ -23,9 +23,17 @@ def handle_api_request(request_body):
             "messages": data.get("messages", []),
         }
 
-        # requests will use https_proxy environment variable
-        # and the proxy will inject x-api-key header
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        # Explicitly set proxy to force routing through CCR proxy
+        # even though anthropic.com is in NO_PROXY
+        proxy_url = os.environ.get("https_proxy", "http://127.0.0.1:43959")
+        proxies = {
+            "https": proxy_url,
+            "http": proxy_url,
+        }
+
+        # Make request through proxy
+        session = requests.Session()
+        response = session.post(url, json=payload, headers=headers, proxies=proxies, timeout=30, verify=False)
         response.raise_for_status()
 
         api_response = response.json()
