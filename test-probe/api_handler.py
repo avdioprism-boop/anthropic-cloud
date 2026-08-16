@@ -37,6 +37,17 @@ def handle_api_request(request_body):
 
         api_response = json.loads(result.stdout)
 
+        # Check if response contains an error
+        if "error" in api_response:
+            error_msg = api_response["error"]
+            if isinstance(error_msg, dict):
+                error_msg = error_msg.get("message", str(error_msg))
+            raise Exception(f"API Error: {error_msg}")
+
+        # Check if we have content
+        if "content" not in api_response or not api_response["content"]:
+            raise Exception(f"Unexpected response: {json.dumps(api_response)}")
+
         return {
             "content": [{"type": "text", "text": api_response["content"][0]["text"]}],
             "model": api_response.get("model"),
