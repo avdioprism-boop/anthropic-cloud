@@ -18,14 +18,11 @@ export default defineConfig({
               });
               req.on("end", async () => {
                 try {
-                  const curlCmd = `curl -s -X POST https://api.anthropic.com/v1/messages \
-                    -H "Content-Type: application/json" \
-                    -H "anthropic-version: 2023-06-01" \
-                    -d '${body.replace(/'/g, "'\\''")}'`;
-
-                  const result = execSync(curlCmd, {
+                  const apiHandlerPath = path.join(__dirname, "api_handler.py");
+                  const result = execSync(`python3 ${apiHandlerPath}`, {
+                    input: body,
                     encoding: "utf-8",
-                    stdio: ["pipe", "pipe", "pipe"],
+                    stdio: ["pipe", "pipe", "inherit"],
                   });
 
                   const data = JSON.parse(result);
