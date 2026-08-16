@@ -99,7 +99,7 @@ export function ChatInterface() {
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
             placeholder="Type your message..."
             disabled={loading}
-            className="flex-1"
+            className="flex-1 bg-muted text-foreground"
           />
           <Button onClick={handleSend} disabled={loading}>
             {loading ? "Sending..." : "Send"}
