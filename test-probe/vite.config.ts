@@ -1,7 +1,7 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { execSync } from "child_process";
+import https from "https";
 
 export default defineConfig({
   plugins: [
@@ -18,19 +18,61 @@ export default defineConfig({
               });
               req.on("end", async () => {
                 try {
-                  const apiHandlerPath = path.join(__dirname, "api_handler.py");
-                  const result = execSync(`python3 ${apiHandlerPath}`, {
-                    input: body,
-                    encoding: "utf-8",
-                    stdio: ["pipe", "pipe", "inherit"],
+                  const data = JSON.parse(body);
+
+                  const requestBody = JSON.stringify({
+                    model: data.model || "claude-sonnet-5",
+                    max_tokens: data.max_tokens || 1024,
+                    messages: data.messages || [],
                   });
 
-                  const data = JSON.parse(result);
-                  res.setHeader("Content-Type", "application/json");
-                  res.statusCode = 200;
-                  res.end(JSON.stringify(data));
+                  const options = {
+                    hostname: "api.anthropic.com",
+                    port: 443,
+                    path: "/v1/messages",
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Content-Length": Buffer.byteLength(requestBody),
+                      "anthropic-version": "2023-06-01",
+                    },
+                    agent: new https.Agent({
+                      rejectUnauthorized: false, // Trust custom CA
+                    }),
+                  };
+
+                  const apiReq = https.request(options, (apiRes) => {
+                    let responseBody = "";
+                    apiRes.on("data", (chunk) => {
+                      responseBody += chunk;
+                    });
+                    apiRes.on("end", () => {
+                      try {
+                        const apiResponse = JSON.parse(responseBody);
+                        res.setHeader("Content-Type", "application/json");
+                        res.statusCode = 200;
+                        res.end(JSON.stringify(apiResponse));
+                      } catch (e) {
+                        res.statusCode = 500;
+                        res.end(
+                          JSON.stringify({ error: "Failed to parse API response" })
+                        );
+                      }
+                    });
+                  });
+
+                  apiReq.on("error", (error) => {
+                    res.statusCode = 500;
+                    res.end(
+                      JSON.stringify({
+                        error: error instanceof Error ? error.message : "Request failed",
+                      })
+                    );
+                  });
+
+                  apiReq.write(requestBody);
+                  apiReq.end();
                 } catch (error) {
-                  console.error("API Error:", error);
                   res.statusCode = 500;
                   res.end(
                     JSON.stringify({
