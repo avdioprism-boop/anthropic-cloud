@@ -1,8 +1,9 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import https from "https";
-import { HttpsProxyAgent } from "https-proxy-agent";
+import { spawn } from "child_process";
+
+let mcpProcess: any = null;
 
 export default defineConfig({
   plugins: [
@@ -10,6 +11,9 @@ export default defineConfig({
     {
       name: "claude-api",
       configureServer(server) {
+        // Start MCP server process
+        mcpProcess = spawn("python3", [path.join(__dirname, "mcp_server.py")]);
+
         return () => {
           server.middlewares.use("/api/claude", async (req, res, next) => {
             if (req.method === "POST") {
@@ -21,58 +25,43 @@ export default defineConfig({
                 try {
                   const data = JSON.parse(body);
 
-                  const requestBody = JSON.stringify({
-                    model: data.model || "claude-sonnet-5",
-                    max_tokens: data.max_tokens || 1024,
-                    messages: data.messages || [],
+                  // Send request to MCP server via stdin
+                  const mcpRequest = JSON.stringify({
+                    id: Date.now(),
+                    method: "call_claude",
+                    params: {
+                      model: data.model || "claude-sonnet-5",
+                      max_tokens: data.max_tokens || 1024,
+                      messages: data.messages || [],
+                    },
                   });
 
-                  const options = {
-                    hostname: "api.anthropic.com",
-                    port: 443,
-                    path: "/v1/messages",
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "Content-Length": Buffer.byteLength(requestBody),
-                      "anthropic-version": "2023-06-01",
-                    },
-                    agent: new https.Agent({
-                      rejectUnauthorized: false, // Trust custom CA
-                    }),
-                  };
+                  mcpProcess.stdin.write(mcpRequest + "\n");
 
-                  const apiReq = https.request(options, (apiRes) => {
-                    let responseBody = "";
-                    apiRes.on("data", (chunk) => {
-                      responseBody += chunk;
-                    });
-                    apiRes.on("end", () => {
-                      try {
-                        const apiResponse = JSON.parse(responseBody);
+                  // Wait for response
+                  const handleOutput = (data: Buffer) => {
+                    try {
+                      const response = JSON.parse(data.toString());
+                      if (response.result?.error) {
+                        res.statusCode = 400;
+                        res.end(JSON.stringify({ error: response.result.error }));
+                      } else if (response.result?.content) {
                         res.setHeader("Content-Type", "application/json");
                         res.statusCode = 200;
-                        res.end(JSON.stringify(apiResponse));
-                      } catch (e) {
-                        res.statusCode = 500;
                         res.end(
-                          JSON.stringify({ error: "Failed to parse API response" })
+                          JSON.stringify({
+                            content: [{ type: "text", text: response.result.content }],
+                            model: response.result.model,
+                          })
                         );
                       }
-                    });
-                  });
+                      mcpProcess.stdout.removeListener("data", handleOutput);
+                    } catch (e) {
+                      // Wait for next line
+                    }
+                  };
 
-                  apiReq.on("error", (error) => {
-                    res.statusCode = 500;
-                    res.end(
-                      JSON.stringify({
-                        error: error instanceof Error ? error.message : "Request failed",
-                      })
-                    );
-                  });
-
-                  apiReq.write(requestBody);
-                  apiReq.end();
+                  mcpProcess.stdout.once("data", handleOutput);
                 } catch (error) {
                   res.statusCode = 500;
                   res.end(
