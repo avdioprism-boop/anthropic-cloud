@@ -141,6 +141,12 @@ listens on every interface.
 
 ---
 
+## API Scope Notes
+
+The Claude Chat app shells out to the `claude` CLI for authentication. GitHub API calls from Claude Code sessions are restricted to repository-scoped endpoints (`repos/{owner}/{repo}/...`). User-level endpoints like follow are not available due to session-level architectural constraints.
+
+---
+
 ## Troubleshooting
 
 **"the 'claude' CLI is not installed"** — Install Claude Code and run `claude`
