@@ -1,2 +1,7 @@
 mem
 node_modules/
+
+# local env + build output
+.env
+dist/
+build/

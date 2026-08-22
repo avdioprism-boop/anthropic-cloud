@@ -1,0 +1,151 @@
+import type { Attachment } from "./attachments";
+// Same file the server reads. Importing it here means the offline fallback and
+// the served list are the same data by construction, not by remembering to
+// edit two places.
+import CATALOGUE from "../../shared/models.json";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  attachments?: Attachment[];
+}
+
+export interface ClaudeReply {
+  text: string;
+  reasoning: string | null;
+  /** Set when the requested model was unreachable and another one answered. */
+  fallbackFrom?: string | null;
+  model?: string;
+}
+
+/** Whether the installed CLI could actually reach this model, as probed. */
+export type ModelStatus = "ready" | "credits" | "no-access";
+
+export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
+
+export interface ModelOption {
+  id: string;
+  name: string;
+  tier?: string;
+  blurb?: string;
+  context?: number | null;
+  price?: { in: number; out: number } | null;
+  status?: ModelStatus;
+  note?: string;
+}
+
+export interface ChatConfig {
+  models: ModelOption[];
+  defaultModel: string;
+  reasoningEnabledByDefault: boolean;
+  effortLevels?: Effort[];
+  defaultEffort?: Effort;
+  fallbackModel?: string;
+}
+
+// Used until /api/config responds, and as a fallback if it cannot be reached.
+export const FALLBACK_CONFIG: ChatConfig = {
+  models: CATALOGUE.models as ModelOption[],
+  defaultModel: CATALOGUE.defaultModel,
+  reasoningEnabledByDefault: true,
+  effortLevels: CATALOGUE.effortLevels as Effort[],
+  defaultEffort: CATALOGUE.defaultEffort as Effort,
+  fallbackModel: CATALOGUE.fallbackModel,
+};
+
+/** "1000000" reads as noise in a dropdown; "1M" doesn't. */
+export function formatContext(tokens: number | null | undefined): string {
+  if (!tokens) return "";
+  return tokens >= 1_000_000
+    ? `${tokens / 1_000_000}M context`
+    : `${Math.round(tokens / 1000)}K context`;
+}
+
+export function formatPrice(price: ModelOption["price"]): string {
+  if (!price) return "";
+  return `${price.in}/${price.out} per MTok`;
+}
+
+export const DEFAULT_MODEL = FALLBACK_CONFIG.defaultModel;
+
+/** Short label for the model pill in the header. */
+export function shortModelName(model: ModelOption | undefined): string {
+  if (!model) return "Model";
+  return model.name;
+}
+
+export async function fetchConfig(): Promise<ChatConfig> {
+  try {
+    const response = await fetch("/api/config");
+    if (!response.ok) throw new Error(`Config request failed: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Falling back to built-in config:", error);
+    return FALLBACK_CONFIG;
+  }
+}
+
+export interface CallOptions {
+  model?: string;
+  reasoning?: boolean;
+  /** Slugs of the skills switched on for this send. */
+  skills?: string[];
+  /** Lets the composer's stop button abort an in-flight request. */
+  signal?: AbortSignal;
+  /** Maps to the CLI's --effort. Omitted values leave the flag off entirely. */
+  effort?: Effort;
+}
+
+export async function callClaude(
+  messages: Message[],
+  options: CallOptions = {}
+): Promise<ClaudeReply> {
+  const {
+    model = DEFAULT_MODEL,
+    reasoning = true,
+    skills = [],
+    signal,
+    effort,
+  } = options;
+
+  const response = await fetch("/api/claude", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    signal,
+    body: JSON.stringify({
+      model,
+      // Binary attachments are stripped here rather than in the UI, so their
+      // chips still show what was dropped while the payload stays text-only.
+      messages: messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+        attachments: (m.attachments ?? [])
+          .filter((a) => a.kind === "text")
+          .map((a) => ({ name: a.name, content: a.content })),
+      })),
+      reasoning,
+      skills,
+      effort,
+    }),
+  });
+
+  if (!response.ok) {
+    // The server puts the real reason in the body; surfacing only the status
+    // code turned every failure into an unhelpful "API Error 500".
+    const detail = await response
+      .json()
+      .then((d: { error?: string }) => d.error)
+      .catch(() => null);
+    throw new Error(detail || `Request failed (${response.status})`);
+  }
+
+  const data = await response.json();
+  return {
+    text: data.content || "",
+    reasoning: data.reasoning ?? null,
+    fallbackFrom: data.fallbackFrom ?? null,
+    model: data.model,
+  };
+}

@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  flawed:
+    build: .
+    ports:
+      - "${PORT:-5274}:5274"
+    environment:
+      - NODE_ENV=production
+      - PORT=5274
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - FLAWED_MODEL=${FLAWED_MODEL:-claude-opus-5}
+    restart: unless-stopped
+    # Memory configuration (adjust FLAWED_MEMORY to scale: 512m, 1g, 2g, 4g, etc.)
+    deploy:
+      resources:
+        limits:
+          memory: ${FLAWED_MEMORY:-1g}
+        reservations:
+          memory: ${FLAWED_MEMORY:-1g}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5274', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

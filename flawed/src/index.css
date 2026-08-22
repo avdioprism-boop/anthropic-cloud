@@ -1,0 +1,622 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/space-grotesk";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ────────────────────────────────────────────────────────────────
+   Typography tokens. The font pickers in Appearance settings write
+   these vars onto <html>, so every surface follows at once.
+   ──────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --font-ui: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Space Grotesk Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", Consolas, monospace;
+    --ui-scale: 1;
+    --radius: 0.75rem;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Themes. Every palette fills the same contract so no component
+   hard-codes a colour. `--brand` is the one hue allowed to be loud:
+   it drives the send button, focus rings, and active states.
+   ──────────────────────────────────────────────────────────────── */
+@layer base {
+  /* ── FLAWED — signature crimson on ink ── */
+  :root,
+  [data-theme="flawed"] {
+    color-scheme: dark;
+    --background: 240 8% 5%;
+    --surface: 240 7% 8%;
+    --surface-2: 240 7% 11%;
+    --foreground: 240 12% 96%;
+    --card: 240 7% 8%;
+    --card-foreground: 240 12% 96%;
+    --popover: 240 8% 7%;
+    --popover-foreground: 240 12% 96%;
+    --primary: 350 82% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 6% 15%;
+    --secondary-foreground: 240 12% 96%;
+    --muted: 240 6% 13%;
+    --muted-foreground: 240 6% 62%;
+    --accent: 240 6% 17%;
+    --accent-foreground: 240 12% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 16%;
+    --input: 240 6% 16%;
+    --ring: 350 82% 56%;
+    --brand: 350 82% 55%;
+    --brand-2: 12 88% 58%;
+    --brand-foreground: 0 0% 100%;
+  }
+
+  /* ── Obsidian — neutral graphite, violet spark ── */
+  [data-theme="obsidian"] {
+    color-scheme: dark;
+    --background: 240 6% 7%;
+    --surface: 240 5% 10%;
+    --surface-2: 240 5% 13%;
+    --foreground: 0 0% 96%;
+    --card: 240 5% 10%;
+    --card-foreground: 0 0% 96%;
+    --popover: 240 6% 9%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 17%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 240 4% 15%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 4% 19%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 4% 18%;
+    --input: 240 4% 18%;
+    --ring: 258 90% 66%;
+    --brand: 258 90% 66%;
+    --brand-2: 292 84% 61%;
+    --brand-foreground: 0 0% 100%;
+  }
+
+  /* ── Clay — warm sand and terracotta ── */
+  [data-theme="clay"] {
+    color-scheme: dark;
+    --background: 25 12% 8%;
+    --surface: 24 10% 11%;
+    --surface-2: 24 9% 14%;
+    --foreground: 35 25% 94%;
+    --card: 24 10% 11%;
+    --card-foreground: 35 25% 94%;
+    --popover: 25 11% 10%;
+    --popover-foreground: 35 25% 94%;
+    --primary: 18 76% 55%;
+    --primary-foreground: 25 30% 8%;
+    --secondary: 24 8% 18%;
+    --secondary-foreground: 35 25% 94%;
+    --muted: 24 8% 16%;
+    --muted-foreground: 30 10% 66%;
+    --accent: 24 8% 20%;
+    --accent-foreground: 35 25% 96%;
+    --destructive: 4 70% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 24 8% 19%;
+    --input: 24 8% 19%;
+    --ring: 18 76% 58%;
+    --brand: 18 76% 57%;
+    --brand-2: 38 82% 58%;
+    --brand-foreground: 25 30% 8%;
+  }
+
+  /* ── Nord — cold arctic blue ── */
+  [data-theme="nord"] {
+    color-scheme: dark;
+    --background: 220 17% 13%;
+    --surface: 220 16% 17%;
+    --surface-2: 220 16% 21%;
+    --foreground: 218 27% 92%;
+    --card: 220 16% 17%;
+    --card-foreground: 218 27% 92%;
+    --popover: 220 17% 15%;
+    --popover-foreground: 218 27% 92%;
+    --primary: 193 43% 67%;
+    --primary-foreground: 220 20% 12%;
+    --secondary: 220 16% 24%;
+    --secondary-foreground: 218 27% 92%;
+    --muted: 220 16% 22%;
+    --muted-foreground: 219 14% 68%;
+    --accent: 220 16% 26%;
+    --accent-foreground: 218 27% 94%;
+    --destructive: 354 42% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 16% 25%;
+    --input: 220 16% 25%;
+    --ring: 193 43% 67%;
+    --brand: 193 43% 67%;
+    --brand-2: 210 34% 63%;
+    --brand-foreground: 220 22% 11%;
+  }
+
+  /* ── Rosé — muted plum and rose ── */
+  [data-theme="rose"] {
+    color-scheme: dark;
+    --background: 249 22% 12%;
+    --surface: 247 23% 15%;
+    --surface-2: 248 21% 19%;
+    --foreground: 245 50% 91%;
+    --card: 247 23% 15%;
+    --card-foreground: 245 50% 91%;
+    --popover: 249 22% 14%;
+    --popover-foreground: 245 50% 91%;
+    --primary: 2 55% 78%;
+    --primary-foreground: 249 30% 12%;
+    --secondary: 248 20% 22%;
+    --secondary-foreground: 245 50% 91%;
+    --muted: 248 20% 20%;
+    --muted-foreground: 245 15% 68%;
+    --accent: 248 20% 25%;
+    --accent-foreground: 245 50% 93%;
+    --destructive: 343 76% 68%;
+    --destructive-foreground: 249 30% 12%;
+    --border: 248 20% 23%;
+    --input: 248 20% 23%;
+    --ring: 2 55% 78%;
+    --brand: 2 55% 78%;
+    --brand-2: 189 43% 73%;
+    --brand-foreground: 249 30% 12%;
+  }
+
+  /* ── Matrix — terminal green on true black ── */
+  [data-theme="matrix"] {
+    color-scheme: dark;
+    --background: 150 20% 3%;
+    --surface: 150 16% 6%;
+    --surface-2: 150 14% 9%;
+    --foreground: 140 30% 88%;
+    --card: 150 16% 6%;
+    --card-foreground: 140 30% 88%;
+    --popover: 150 18% 5%;
+    --popover-foreground: 140 30% 88%;
+    --primary: 145 80% 45%;
+    --primary-foreground: 150 40% 4%;
+    --secondary: 150 12% 13%;
+    --secondary-foreground: 140 30% 88%;
+    --muted: 150 12% 11%;
+    --muted-foreground: 145 15% 58%;
+    --accent: 150 12% 15%;
+    --accent-foreground: 140 30% 92%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 12% 14%;
+    --input: 150 12% 14%;
+    --ring: 145 80% 45%;
+    --brand: 145 80% 45%;
+    --brand-2: 168 76% 45%;
+    --brand-foreground: 150 40% 4%;
+  }
+
+  /* ── Paper — warm light ── */
+  [data-theme="paper"] {
+    color-scheme: light;
+    --background: 40 30% 97%;
+    --surface: 0 0% 100%;
+    --surface-2: 40 20% 94%;
+    --foreground: 25 20% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 25 20% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 20% 14%;
+    --primary: 18 72% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 20% 92%;
+    --secondary-foreground: 25 20% 14%;
+    --muted: 40 20% 93%;
+    --muted-foreground: 30 8% 42%;
+    --accent: 40 22% 89%;
+    --accent-foreground: 25 20% 12%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 38 18% 87%;
+    --input: 38 18% 87%;
+    --ring: 18 72% 48%;
+    --brand: 18 72% 50%;
+    --brand-2: 38 80% 50%;
+    --brand-foreground: 0 0% 100%;
+  }
+
+  /* ── Daylight — cool light ── */
+  [data-theme="daylight"] {
+    color-scheme: light;
+    --background: 220 30% 98%;
+    --surface: 0 0% 100%;
+    --surface-2: 220 24% 95%;
+    --foreground: 222 40% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 40% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 40% 12%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 22% 94%;
+    --secondary-foreground: 222 40% 12%;
+    --muted: 220 22% 95%;
+    --muted-foreground: 220 10% 44%;
+    --accent: 220 24% 91%;
+    --accent-foreground: 222 40% 10%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 18% 89%;
+    --input: 220 18% 89%;
+    --ring: 221 83% 53%;
+    --brand: 221 83% 55%;
+    --brand-2: 199 89% 48%;
+    --brand-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    min-width: 0;
+  }
+
+  html {
+    font-size: calc(16px * var(--ui-scale));
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-ui);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    overflow: hidden;
+  }
+
+  /* Focus rings only when the keyboard put you there. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Slim, theme-aware scrollbars everywhere. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.6);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::selection {
+    background: hsl(var(--brand) / 0.32);
+  }
+
+  /* Respect the OS switch rather than shipping motion nobody can turn off. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Frameless-window drag handles. No-ops in a browser tab. */
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+
+  .glass {
+    background: hsl(var(--surface) / 0.72);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  .brand-gradient {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--brand)) 0%,
+      hsl(var(--brand-2)) 100%
+    );
+  }
+
+  .brand-text {
+    background-image: linear-gradient(
+      120deg,
+      hsl(var(--brand)) 0%,
+      hsl(var(--brand-2)) 60%,
+      hsl(var(--brand)) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Hairline top highlight — cheap way to make panels read as raised. */
+  .edge-light {
+    box-shadow: inset 0 1px 0 0 hsl(var(--foreground) / 0.06);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Markdown. Scoped to .md so it never leaks into chrome/controls.
+   ──────────────────────────────────────────────────────────────── */
+@layer components {
+  .md {
+    @apply text-[0.9375rem] leading-[1.7];
+    word-break: break-word;
+  }
+  .md > *:first-child {
+    margin-top: 0;
+  }
+  .md > *:last-child {
+    margin-bottom: 0;
+  }
+
+  .md p {
+    @apply my-3;
+  }
+  .md h1 {
+    @apply mt-6 mb-3 text-xl font-semibold tracking-tight;
+    font-family: var(--font-display);
+  }
+  .md h2 {
+    @apply mt-6 mb-3 text-lg font-semibold tracking-tight;
+    font-family: var(--font-display);
+  }
+  .md h3 {
+    @apply mt-5 mb-2 text-base font-semibold;
+  }
+  .md h4,
+  .md h5,
+  .md h6 {
+    @apply mt-4 mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  .md ul {
+    @apply my-3 list-disc space-y-1.5 pl-5;
+  }
+  .md ol {
+    @apply my-3 list-decimal space-y-1.5 pl-5;
+  }
+  .md li::marker {
+    color: hsl(var(--brand) / 0.75);
+  }
+  .md li > ul,
+  .md li > ol {
+    @apply my-1.5;
+  }
+
+  .md a {
+    color: hsl(var(--brand));
+    @apply underline underline-offset-2 transition-colors;
+    text-decoration-color: hsl(var(--brand) / 0.4);
+  }
+  .md a:hover {
+    text-decoration-color: hsl(var(--brand));
+  }
+
+  .md blockquote {
+    @apply my-4 rounded-r-md py-1 pl-4 pr-2 text-muted-foreground;
+    border-left: 3px solid hsl(var(--brand) / 0.55);
+    background: hsl(var(--foreground) / 0.03);
+  }
+
+  .md hr {
+    @apply my-6 border-border;
+  }
+
+  .md :not(pre) > code {
+    @apply rounded px-[0.35em] py-[0.15em] text-[0.85em];
+    font-family: var(--font-mono);
+    background: hsl(var(--foreground) / 0.08);
+    color: hsl(var(--brand));
+  }
+
+  .md pre {
+    @apply my-0 overflow-x-auto p-4 text-[0.825rem] leading-relaxed;
+    font-family: var(--font-mono);
+  }
+  .md pre code {
+    @apply bg-transparent p-0 text-inherit;
+    font-family: var(--font-mono);
+  }
+
+  .md table {
+    @apply my-4 w-full border-collapse overflow-hidden rounded-lg text-sm;
+    border: 1px solid hsl(var(--border));
+  }
+  .md thead {
+    background: hsl(var(--foreground) / 0.05);
+  }
+  .md th {
+    @apply px-3 py-2 text-left font-semibold;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .md td {
+    @apply px-3 py-2 align-top;
+    border-bottom: 1px solid hsl(var(--border) / 0.6);
+  }
+  .md tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .md tbody tr:hover {
+    background: hsl(var(--foreground) / 0.03);
+  }
+
+  .md img {
+    @apply my-3 max-w-full rounded-lg;
+  }
+
+  .md input[type="checkbox"] {
+    @apply mr-1.5 align-middle;
+    accent-color: hsl(var(--brand));
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Syntax highlighting, wired to theme tokens so code blocks recolour
+   with the rest of the app instead of fighting it.
+
+   Deliberately NOT inside `@layer components`: these class names are
+   emitted at runtime by rehype-highlight and never appear in any
+   source file, so Tailwind's content scan finds no match and strips
+   the whole block. Plain top-level CSS is always kept.
+   ──────────────────────────────────────────────────────────────── */
+.hljs {
+    color: hsl(var(--foreground) / 0.92);
+    background: transparent;
+  }
+  .hljs-comment,
+  .hljs-quote {
+    color: hsl(var(--muted-foreground) / 0.85);
+    font-style: italic;
+  }
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-literal,
+  .hljs-doctag,
+  .hljs-name,
+  .hljs-section,
+  .hljs-type {
+    color: hsl(var(--brand));
+    font-weight: 600;
+  }
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-addition,
+  .hljs-attribute,
+  .hljs-meta .hljs-string {
+    color: hsl(var(--brand-2));
+  }
+  .hljs-number,
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-link,
+  .hljs-selector-attr,
+  .hljs-selector-pseudo {
+    color: hsl(142 60% 55%);
+  }
+  .hljs-title,
+  .hljs-title.function_,
+  .hljs-built_in {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-attr,
+  .hljs-property {
+    color: hsl(var(--foreground) / 0.78);
+  }
+  .hljs-deletion {
+    color: hsl(var(--destructive));
+  }
+  .hljs-emphasis {
+    font-style: italic;
+  }
+  .hljs-strong {
+    font-weight: 700;
+  }
+
+/* ── Animations ── */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes thinking-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+@keyframes sheen {
+  to {
+    background-position: 200% center;
+  }
+}
+@keyframes aurora {
+  0%,
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 4%, 0) scale(1.12);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}
+.animate-pop-in {
+  animation: pop-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-sheen {
+  animation: sheen 4s linear infinite;
+}
+.animate-aurora {
+  animation: aurora 18s ease-in-out infinite;
+}
+.animate-thinking-dot {
+  animation: thinking-dot 1.2s ease-in-out infinite;
+}
