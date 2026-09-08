@@ -1,0 +1,26 @@
+# Applied with:  ant beta:environments create < environments/sandbox.environment.yaml
+#
+# Environments are reusable across agents and are matched by name — creating one
+# with an existing name returns 409. Updates apply to NEW containers only;
+# sessions already running keep the config they started with.
+
+name: mythos-sandbox
+
+config:
+  type: cloud
+
+  # unrestricted = full egress except the legal blocklist.
+  networking:
+    type: unrestricted
+
+  # To lock egress down instead, replace the block above with:
+  #
+  # networking:
+  #   type: limited
+  #   allow_package_managers: true   # PyPI / npm / etc.
+  #   allow_mcp_servers: true        # reach the agent's configured MCP endpoints
+  #   allowed_hosts:
+  #     - api.internal.example.com
+  #
+  # Under `limited`, an MCP server that is neither covered by allow_mcp_servers
+  # nor listed in allowed_hosts is unreachable and its tools fail silently.
