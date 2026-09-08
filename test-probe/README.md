@@ -25,7 +25,7 @@ If that prints a reply, you're set. Everything else below depends only on this.
 **2. Get the code and its dependencies**
 
 ```bash
-git clone https://github.com/avdioprism-boop/anthropic-cloud.git
+git clone https://github.com/flawed-it/anthropic-cloud.git
 cd anthropic-cloud/test-probe
 npm install       # or: pnpm install
 ```
